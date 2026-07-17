@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Your purchase — WalPay{% endblock %}
+{% block content %}
+<h1>Your purchase</h1>
+<div class="card">
+  <div class="rule-row"><span>{{ intent.bundle.title }}</span><span class="money">${{ intent.amount_cents|usd }}</span></div>
+  <div class="rule-row"><span>Clinic</span><span>{{ intent.bundle.provider.name }}, {{ intent.bundle.provider.city }}</span></div>
+  <div class="rule-row"><span>Patient's phone</span><span class="code">{{ intent.recipient_phone }}</span></div>
+  <div class="rule-row"><span>Total paid</span><span class="money">${{ (intent.amount_cents + intent.fee_cents)|usd }}</span></div>
+</div>
+
+{% if intent.status.value == 'completed' %}
+<div class="ticket">
+  <span class="muted">Voucher issued</span>
+  <span class="code">SENT BY SMS</span>
+  <span class="muted">to {{ intent.recipient_phone }}</span>
+</div>
+<p>The redemption code was sent to the patient's phone. They show the code and the phone at the clinic to receive care. You will be able to see the voucher's status on the <a href="{{ url_for('shop.voucher_status') }}">check a voucher</a> page.</p>
+{% elif dev_mode %}
+<div class="card">
+  <p><b>Payment pending.</b> This is a development environment — no real payment provider is connected.</p>
+  <form method="post" action="{{ url_for('shop.simulate_payment', public_id=intent.public_id) }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button type="submit">Simulate successful payment</button>
+  </form>
+</div>
+{% else %}
+<div class="card"><p><b>Payment pending.</b> Complete the payment in the window that opened. This page updates once the payment is confirmed.</p></div>
+{% endif %}
+{% endblock %}

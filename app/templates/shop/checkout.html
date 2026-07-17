@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Checkout — WalPay{% endblock %}
+{% block content %}
+<h1>Checkout</h1>
+<div class="card">
+  <div class="rule-row"><span>{{ bundle.title }}</span><span class="money">${{ bundle.price_cents|usd }}</span></div>
+  <div class="rule-row"><span>{{ bundle.provider.name }}, {{ bundle.provider.city }}</span><span></span></div>
+  <div class="rule-row"><span>Service fee</span><span class="money">${{ fee|usd }}</span></div>
+  <div class="rule-row"><span><b>Total</b></span><span class="money"><b>${{ (bundle.price_cents + fee)|usd }}</b></span></div>
+</div>
+<form method="post">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <label for="full_name">Your full name</label>
+  <input id="full_name" name="full_name" required maxlength="120" value="{{ form.get('full_name','') }}">
+  <label for="email">Your email <span class="muted">(your receipt goes here)</span></label>
+  <input id="email" name="email" type="email" required value="{{ form.get('email','') }}">
+  <label for="recipient_phone">Patient's phone number <span class="muted">(the code is sent here by SMS)</span></label>
+  <input id="recipient_phone" name="recipient_phone" inputmode="tel" placeholder="+211912345678" required value="{{ form.get('recipient_phone','') }}">
+  <button type="submit">Continue to payment</button>
+</form>
+<p class="muted">The voucher can only be used at {{ bundle.provider.name }} by the person holding this phone number. Unused vouchers are refunded automatically after 90 days.</p>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Pay for a loved one's care back home</h1>
+<p class="muted">Choose a verified clinic or pharmacy. Your money is held safely and released only after your relative is treated — you get an SMS-confirmed receipt.</p>
+
+{% if not providers %}
+  <div class="card"><p>No clinics are listed yet. We are onboarding our first verified providers — check back soon.</p></div>
+{% endif %}
+
+{% for p in providers %}
+<div class="card">
+  <h2 style="margin-top:0">{{ p.name }} <span class="muted">· {{ p.city }}</span></h2>
+  {% for b in bundles[p.id] %}
+    <div class="rule-row">
+      <span>{{ b.title }}</span>
+      <span style="white-space:nowrap">
+        <span class="money">${{ b.price_cents|usd }}</span>
+        <a href="{{ url_for('shop.checkout', bundle_id=b.id) }}" style="margin-left:.7rem">Buy</a>
+      </span>
+    </div>
+  {% else %}
+    <p class="muted">No services listed.</p>
+  {% endfor %}
+</div>
+{% endfor %}
+{% endblock %}

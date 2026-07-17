@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}WalPay{% endblock %}</title>
+<style>
+/* Design tokens — receipt vernacular. No webfonts, no images: the entire
+   page must load on a 2G connection in Juba. */
+:root{
+  --ink:#10312B; --paper:#FBFAF6; --river:#12655A; --river-deep:#0C4A42;
+  --brass:#8A6D1D; --line:#D8D5CC; --error:#8C2F1B; --ok:#1E5B2E;
+  --mono:ui-monospace,'Cascadia Mono','Roboto Mono',Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:16px/1.55 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;}
+main{max-width:34rem;margin:0 auto;padding:0 1rem 4rem}
+a{color:var(--river)}
+h1,h2{line-height:1.15;letter-spacing:-.01em}
+h1{font-size:1.6rem;font-weight:800;margin:1.2rem 0 .4rem}
+h2{font-size:1.05rem;font-weight:700;margin:1.6rem 0 .5rem}
+
+/* Header: wordmark set like a till receipt's shop name */
+header{border-bottom:2px solid var(--ink);padding:.85rem 1rem;
+  display:flex;justify-content:space-between;align-items:baseline}
+.wordmark{font-family:var(--mono);font-weight:700;font-size:1rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink);text-decoration:none}
+.wordmark b{color:var(--river)}
+header nav a{font-size:.85rem;margin-left:1rem;text-decoration:none;color:var(--river)}
+
+/* Money and codes are ALWAYS monospace — the receipt rule */
+.money,.code{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.money{font-weight:600}
+
+/* Cards: quiet, hairline-ruled */
+.card{border:1px solid var(--line);background:#fff;border-radius:6px;
+  padding:1rem;margin:.8rem 0}
+.rule-row{display:flex;justify-content:space-between;gap:1rem;
+  padding:.5rem 0;border-bottom:1px dotted var(--line)}
+.rule-row:last-child{border-bottom:0}
+.muted{color:#5c6660;font-size:.85rem}
+
+/* THE signature element: the voucher ticket with perforated edges */
+.ticket{border:2px dashed var(--brass);border-radius:8px;background:#fff;
+  padding:1.1rem;margin:1rem 0;text-align:center}
+.ticket .code{font-size:1.7rem;font-weight:700;letter-spacing:.22em;
+  color:var(--brass);display:block;margin:.35rem 0}
+.ticket .muted{letter-spacing:.06em;text-transform:uppercase;font-size:.72rem}
+
+/* Forms: large touch targets, visible focus */
+label{display:block;font-size:.85rem;font-weight:600;margin:.9rem 0 .25rem}
+input{width:100%;padding:.7rem .75rem;font-size:1rem;border:1px solid var(--line);
+  border-radius:6px;background:#fff;color:var(--ink)}
+input:focus,button:focus,a:focus{outline:3px solid var(--river);outline-offset:2px}
+button{width:100%;margin-top:1.1rem;padding:.85rem;font-size:1rem;font-weight:700;
+  color:#fff;background:var(--river);border:0;border-radius:6px;cursor:pointer}
+button:hover{background:var(--river-deep)}
+button.quiet{background:none;color:var(--river);border:1px solid var(--line);width:auto;
+  padding:.4rem .8rem;font-size:.85rem;font-weight:600;margin:0}
+
+/* Status line messages */
+.flash{padding:.7rem .9rem;border-radius:6px;margin:.8rem 0;font-size:.92rem}
+.flash.error{background:#F7E8E3;color:var(--error);border:1px solid #E3C3B8}
+.flash.ok{background:#E7F0E8;color:var(--ok);border:1px solid #C2D8C6}
+
+.status-tag{font-family:var(--mono);font-size:.75rem;letter-spacing:.08em;
+  text-transform:uppercase;padding:.15rem .5rem;border-radius:4px;
+  border:1px solid var(--line)}
+.status-redeemed,.status-paid_out{color:var(--ok);border-color:var(--ok)}
+.status-expired,.status-refunded{color:var(--error);border-color:var(--error)}
+
+footer{border-top:1px solid var(--line);margin-top:3rem;padding:1rem;
+  text-align:center;font-size:.78rem;color:#5c6660}
+@media (prefers-reduced-motion:no-preference){
+  .ticket{animation:settle .35s ease-out}
+  @keyframes settle{from{transform:translateY(4px);opacity:.6}to{transform:none;opacity:1}}
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="wordmark" href="{{ url_for('shop.index') }}">Wal<b>Pay</b></a>
+  <nav>
+    <a href="{{ url_for('shop.voucher_status') }}">Check a voucher</a>
+    <a href="{{ url_for('portal.login') }}">Clinic sign-in</a>
+  </nav>
+</header>
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <p class="flash {{ category }}">{{ message }}</p>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<footer>Prepaid care at verified clinics in South Sudan · Funds are held until treatment is confirmed</footer>
+</body>
+</html>

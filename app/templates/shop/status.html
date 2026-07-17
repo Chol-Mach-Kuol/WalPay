@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Check a voucher — WalPay{% endblock %}
+{% block content %}
+<h1>Check a voucher</h1>
+<p class="muted">Enter the code from the SMS and the patient's phone number.</p>
+<form method="post">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <label for="code">Voucher code</label>
+  <input id="code" name="code" class="code" autocapitalize="characters" autocomplete="off" required>
+  <label for="recipient_phone">Patient's phone number</label>
+  <input id="recipient_phone" name="recipient_phone" inputmode="tel" placeholder="+211912345678" required>
+  <button type="submit">Check status</button>
+</form>
+{% if result %}
+<div class="ticket">
+  <span class="muted">{{ result.bundle.title }} · {{ result.provider.name }}</span>
+  <span class="code">{{ {'issued':'READY TO USE','redeemed':'CARE RECEIVED','paid_out':'CARE RECEIVED','expired':'EXPIRED — REFUNDING','refunded':'REFUNDED','disputed':'UNDER REVIEW'}[result.status.value] }}</span>
+  <span class="muted">Value ${{ result.face_value_cents|usd }}{% if result.redeemed_at %} · used {{ result.redeemed_at.strftime('%d %b %Y') }}{% endif %}</span>
+</div>
+{% endif %}
+{% endblock %}

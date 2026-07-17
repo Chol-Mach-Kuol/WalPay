@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Operations — WalPay{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:baseline">
+  <h1>Operations</h1>
+  <form method="post" action="{{ url_for('admin.logout') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="quiet" type="submit">Sign out</button>
+  </form>
+</div>
+
+<h2>Reconciliation</h2>
+<div class="card">
+  {% for name, cents in report.totals.items() %}
+  <div class="rule-row"><span>{{ name.replace('_',' ') }}</span><span class="money">${{ cents|usd }}</span></div>
+  {% endfor %}
+  <div class="rule-row"><span><b>Trial balance</b></span>
+    <span class="status-tag {{ 'status-paid_out' if report.trial_balance_zero else 'status-expired' }}">
+      {{ 'balanced' if report.trial_balance_zero else 'BROKEN — investigate now' }}</span></div>
+  <div class="rule-row"><span><b>Cash covers obligations</b></span>
+    <span class="status-tag {{ 'status-paid_out' if report.cash_covers_obligations else 'status-expired' }}">
+      {{ 'yes' if report.cash_covers_obligations else 'NO — stop payouts' }}</span></div>
+</div>
+
+<h2>Patient callbacks <span class="muted">(fraud sampling)</span></h2>
+<form method="post" action="{{ url_for('admin.callbacks_sample') }}">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  <button class="quiet" type="submit">Sample new redemptions</button>
+</form>
+<div class="card">
+  {% for c in callbacks %}
+  <div class="rule-row">
+    <span>#{{ c.voucher.id }} {{ c.voucher.bundle.title }}<br>
+      <span class="muted">{{ c.voucher.provider.name }} · call <span class="code">{{ c.voucher.recipient_phone }}</span></span></span>
+    <form method="post" action="{{ url_for('admin.callbacks_resolve', check_id=c.id) }}" style="text-align:right">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input name="note" placeholder="call note" style="width:9rem;padding:.35rem;font-size:.8rem">
+      <button class="quiet" name="outcome" value="verified" type="submit">Verified</button>
+      <button class="quiet" name="outcome" value="flagged" type="submit" style="color:var(--error)">Flag</button>
+    </form>
+  </div>
+  {% else %}<p class="muted" style="margin:0">No pending callbacks. Sample above after new redemptions.</p>{% endfor %}
+</div>
+
+<h2>Disputes</h2>
+<div class="card">
+  {% for v in disputes %}
+  <div class="rule-row">
+    <span>#{{ v.id }} {{ v.bundle.title }} <span class="money">${{ v.face_value_cents|usd }}</span><br>
+      <span class="muted">{{ v.provider.name }}</span></span>
+    <form method="post" action="{{ url_for('admin.disputes_resolve', voucher_id=v.id) }}" style="text-align:right">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <button class="quiet" name="outcome" value="pay" type="submit">Pay provider</button>
+      <button class="quiet" name="outcome" value="refund" type="submit" style="color:var(--error)">Refund sender</button>
+    </form>
+  </div>
+  {% else %}<p class="muted" style="margin:0">No open disputes.</p>{% endfor %}
+</div>
+{% endblock %}

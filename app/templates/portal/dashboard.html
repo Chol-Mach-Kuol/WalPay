@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}{{ provider.name }} — WalPay portal{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:baseline">
+  <h1>{{ provider.name }}</h1>
+  <form method="post" action="{{ url_for('portal.logout') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <button class="quiet" type="submit">Sign out</button>
+  </form>
+</div>
+
+<h2>Redeem a voucher</h2>
+<div class="card">
+  <form method="post" action="{{ url_for('portal.redeem') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label for="code">Voucher code <span class="muted">(from the patient's SMS)</span></label>
+    <input id="code" name="code" class="code" autocapitalize="characters" autocomplete="off" required>
+    <label for="recipient_phone">Patient's phone number</label>
+    <input id="recipient_phone" name="recipient_phone" inputmode="tel" placeholder="+211912345678" required>
+    <button type="submit">Redeem voucher</button>
+  </form>
+</div>
+
+<h2>Awaiting payout</h2>
+<div class="card">
+  <div class="rule-row"><span>Redeemed, not yet paid to you</span><span class="money">${{ pending_cents|usd }}</span></div>
+  <p class="muted" style="margin-bottom:0">Payouts run weekly. You receive an SMS with the payment reference.</p>
+</div>
+
+<h2>Recent activity</h2>
+<div class="card">
+  {% for v in recent %}
+  <div class="rule-row">
+    <span>{{ v.bundle.title }}<br><span class="muted">{{ v.redeemed_at.strftime('%d %b %Y') if v.redeemed_at }}</span></span>
+    <span style="text-align:right"><span class="money">${{ v.face_value_cents|usd }}</span><br>
+      <span class="status-tag status-{{ v.status.value }}">{{ 'paid' if v.status.value == 'paid_out' else v.status.value }}</span></span>
+  </div>
+  {% else %}
+  <p class="muted" style="margin:0">No redemptions yet. When a patient brings a code, redeem it above and it appears here.</p>
+  {% endfor %}
+</div>
+{% endblock %}
